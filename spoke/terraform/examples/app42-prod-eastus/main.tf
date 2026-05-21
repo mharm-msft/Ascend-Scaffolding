@@ -1,9 +1,9 @@
 terraform {
-  required_version = ">= 1.5.0"
+  required_version = ">= 1.6.0"
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.110"
+      version = "~> 4.0"
     }
   }
 }
@@ -25,7 +25,7 @@ module "spoke" {
   avnm_group_tag_value  = "east-prod-spokes"
 
   subnets = [
-    { name = "app",  prefix = "10.100.42.0/26" },
+    { name = "app", prefix = "10.100.42.0/26" },
     { name = "data", prefix = "10.100.42.64/26" },
   ]
 
@@ -37,5 +37,5 @@ module "spoke" {
   }
 }
 
-output "vnet_id"    { value = module.spoke.vnet_id }
+output "vnet_id" { value = module.spoke.vnet_id }
 output "subnet_ids" { value = module.spoke.subnet_ids }

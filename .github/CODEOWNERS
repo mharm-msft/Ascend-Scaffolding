@@ -1,0 +1,23 @@
+# Replace @mharm-msft with appropriate team handles when known
+# (e.g. @org/platform-networking, @org/security, @org/policy-team).
+
+# Default owner
+*                                       @mharm-msft
+
+# IaC entry points + modules
+/bicep/                                 @mharm-msft
+/terraform/                             @mharm-msft
+/arm/                                   @mharm-msft
+/spoke/                                 @mharm-msft
+
+# Policy foundation
+/policy/                                @mharm-msft
+
+# Security-sensitive: SecurityAdmin rules + manual-dispatch workflow
+/bicep/modules/securityAdminRules.bicep         @mharm-msft
+/terraform/modules/security-admin-rules/        @mharm-msft
+/arm/nested/securityAdminRules.json             @mharm-msft
+/.github/workflows/commit-avnm.yml              @mharm-msft
+
+# Architecture docs need design review
+/docs/adr/                              @mharm-msft

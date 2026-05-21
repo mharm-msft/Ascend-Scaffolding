@@ -53,14 +53,14 @@ variable "child_network_groups" {
 variable "hubs" {
   description = "Child AVNM hub definitions — one per region."
   type = list(object({
-    name             = string
-    location         = string
-    mg_name          = string
-    subscription_id  = string
-    resource_group   = string
-    address_space    = string
-    max_spokes       = optional(number)
-    network_groups   = optional(list(string))
+    name            = string
+    location        = string
+    mg_name         = string
+    subscription_id = string
+    resource_group  = string
+    address_space   = string
+    max_spokes      = optional(number)
+    network_groups  = optional(list(string))
   }))
 
   default = [

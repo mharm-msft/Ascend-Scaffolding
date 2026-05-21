@@ -2,7 +2,7 @@
 param location string
 
 param vnetName string
-param addressSpace string
+param addressSpace array
 param avnmGroupTagKey string
 param avnmGroupTagValue string
 param extraTags object
@@ -44,7 +44,7 @@ resource vnet 'Microsoft.Network/virtualNetworks@2024-01-01' = {
   tags:     mergedTags
   properties: {
     addressSpace: {
-      addressPrefixes: [ addressSpace ]
+      addressPrefixes: addressSpace
     }
     subnets: [for s in subnets: {
       name: s.name
