@@ -9,6 +9,7 @@ on:
       - arm/**
       - spoke/**
       - policy/**
+      - tools/**
       - .github/workflows/iac-validate.yml
   push:
     branches: [main]
@@ -18,6 +19,7 @@ on:
       - arm/**
       - spoke/**
       - policy/**
+      - tools/**
       - .github/workflows/iac-validate.yml
   workflow_dispatch:
 
@@ -109,6 +111,19 @@ jobs:
       - name: terraform validate -no-color
         if: steps.check.outputs.exists == 'true'
         run: terraform -chdir="${{ matrix.tf_dir }}" validate -no-color
+
+
+  tag-mapping-lint:
+    name: policy tag-value <-> NG-name lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Run tag-mapping lint
+        run: python3 tools/check-tag-mapping.py
 
   arm-validate:
     runs-on: ubuntu-latest

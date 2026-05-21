@@ -12,8 +12,8 @@ param createResourceGroup bool = true
 @description('Name of the spoke VNet.')
 param vnetName string
 
-@description('CIDR for the spoke VNet (single prefix). Use the module directly if you need multiple.')
-param addressSpace string
+@description('CIDR(s) for the spoke VNet.')
+param addressSpace array
 
 @description('Tag key that drives AVNM Network Group membership. Must match the platform-wide setting.')
 param avnmGroupTagKey string = 'avnmGroup'
