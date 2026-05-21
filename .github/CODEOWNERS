@@ -1,7 +1,7 @@
-# Replace @mharm-msft with the appropriate team handles when known
+# Replace @mharm-msft with appropriate team handles when known
 # (e.g. @org/platform-networking, @org/security, @org/policy-team).
 
-# Default owner: everything not covered below
+# Default owner
 *                                       @mharm-msft
 
 # IaC entry points + modules

@@ -29,7 +29,7 @@ resource "azurerm_network_security_group" "baseline" {
   resource_group_name = var.resource_group_name
   tags                = local.merged_tags
 
-  # TODO: split to azurerm_network_security_rule for v5 forward compat
+  # TODO: split inline security_rule to azurerm_network_security_rule for v5 forward compat
   security_rule {
     name                       = "deny-inbound-internet-management"
     description                = "Belt-and-braces deny on top of AVNM SecurityAdmin baseline"

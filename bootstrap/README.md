@@ -1,10 +1,15 @@
-# Management group bootstrap
+# Management-group bootstrap
 
-One-time setup for first-time deployment in a fresh tenant.
+One-time setup for a fresh tenant where these management groups do not yet exist:
+
+- `mg-saas-platform`
+- `mg-hub-eastus`
+- `mg-hub-westus`
+- `mg-hub-centralus`
 
 Run this as a Global Admin or Management Group Contributor at tenant scope.
 
-## Tenant-scope deployment
+## Deploy with Bicep (tenant scope)
 
 ```bash
 az deployment tenant create \
@@ -21,12 +26,8 @@ az account management-group create --name mg-hub-westus    --parent mg-saas-plat
 az account management-group create --name mg-hub-centralus --parent mg-saas-platform
 ```
 
-## Place subscriptions under hub management groups
-
-After creation, place each hub subscription under the appropriate per-hub management group:
+## Place subscriptions under each hub MG
 
 ```bash
 az account management-group subscription add --name mg-hub-eastus --subscription <sub-id>
 ```
-
-Repeat for `mg-hub-westus` and `mg-hub-centralus` as needed.

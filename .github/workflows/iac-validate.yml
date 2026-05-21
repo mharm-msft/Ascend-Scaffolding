@@ -168,3 +168,15 @@ jobs:
             \$result | Format-Table;
             if (\$result | Where-Object { -not \$_.Passed }) { exit 1 } else { exit 0 }
           "
+
+  tag-mapping-lint:
+    name: policy tag-value <-> NG-name lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Run tag-mapping lint
+        run: python3 tools/check-tag-mapping.py

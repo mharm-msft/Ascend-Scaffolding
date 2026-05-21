@@ -1,39 +1,33 @@
 targetScope = 'tenant'
 
-@description('Name of the root management group for the SaaS platform.')
+@description('Root management group name.')
 param rootMgName string = 'mg-saas-platform'
 
-@description('Per-hub management group names to create under the root management group.')
+@description('Hub management group names.')
 param hubMgNames array = [
   'mg-hub-eastus'
   'mg-hub-westus'
   'mg-hub-centralus'
 ]
 
-@description('Tenant root management group ID (usually the tenant ID).')
-param tenantRootGroupId string = tenant().tenantId
-
-resource rootManagementGroup 'Microsoft.Management/managementGroups@2023-04-01' = {
+resource rootMg 'Microsoft.Management/managementGroups@2023-04-01' = {
   name: rootMgName
   properties: {
-    details: {
-      parent: {
-        id: '/providers/Microsoft.Management/managementGroups/${tenantRootGroupId}'
-      }
-    }
+    displayName: rootMgName
   }
 }
 
-resource hubManagementGroups 'Microsoft.Management/managementGroups@2023-04-01' = [for hubMgName in hubMgNames: {
+resource hubMgs 'Microsoft.Management/managementGroups@2023-04-01' = [for hubMgName in hubMgNames: {
   name: hubMgName
   properties: {
+    displayName: hubMgName
     details: {
       parent: {
-        id: rootManagementGroup.id
+        id: rootMg.id
       }
     }
   }
 }]
 
-output rootMgId string = rootManagementGroup.id
-output hubMgIds array = [for (hubMgName, i) in hubMgNames: hubManagementGroups[i].id]
+output rootMgId string = rootMg.id
+output hubMgIds array = [for (hubMgName, i) in hubMgNames: hubMgs[i].id]

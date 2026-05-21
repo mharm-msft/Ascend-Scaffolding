@@ -23,12 +23,12 @@ module "avnm_parent" {
     azapi   = azapi
   }
 
-  name                            = var.parent_avnm_name
-  location                        = var.parent_location
-  resource_group_name             = var.parent_resource_group
-  root_mg_id                      = local.root_mg_id
-  baseline_network_groups         = var.baseline_network_groups
-  enable_security_admin_baseline  = var.enable_security_admin_baseline
+  name                           = var.parent_avnm_name
+  location                       = var.parent_location
+  resource_group_name            = var.parent_resource_group
+  root_mg_id                     = local.root_mg_id
+  baseline_network_groups        = var.baseline_network_groups
+  enable_security_admin_baseline = var.enable_security_admin_baseline
 }
 
 # ---------------------------------------------------------------------------

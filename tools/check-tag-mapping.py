@@ -1,82 +1,95 @@
 #!/usr/bin/env python3
 import json
-import re
 import sys
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_CHILD_NGS = ['prod-spokes', 'nonprod-spokes', 'dr-spokes']
+ROOT = Path(__file__).resolve().parents[1]
+ROOT_ASSIGNMENT = ROOT / "policy/assignments/root-mg-assignment.json"
+HUB_ASSIGNMENTS = [
+    ROOT / "policy/assignments/hub-east-assignment.json",
+    ROOT / "policy/assignments/hub-west-assignment.json",
+    ROOT / "policy/assignments/hub-central-assignment.json",
+]
+EXPECTED_NGS = {"prod-spokes", "nonprod-spokes", "dr-spokes"}
 
 
-def load_json(path: Path) -> dict:
-    with path.open('r', encoding='utf-8') as f:
-        return json.load(f)
+def read_json(path: Path) -> dict:
+    with path.open(encoding="utf-8") as handle:
+        return json.load(handle)
 
 
-def parse_child_network_groups(path: Path) -> list[str]:
-    content = path.read_text(encoding='utf-8')
-    match = re.search(r"param\s+childNetworkGroups\s+array\s*=\s*\[(.*?)\]", content, flags=re.DOTALL)
-    if not match:
-        print(
-            "WARN: could not parse childNetworkGroups default from bicep/main.bicep; using fallback list",
-            file=sys.stderr,
+def root_allowed_tag_values(path: Path) -> set[str]:
+    data = read_json(path)
+    for resource in data.get("resources", []):
+        allowed = (
+            resource.get("properties", {})
+            .get("parameters", {})
+            .get("allowedTagValues", {})
+            .get("value")
         )
-        return DEFAULT_CHILD_NGS
+        if isinstance(allowed, list):
+            return {str(value) for value in allowed}
+    raise ValueError(
+        f"Could not find resources[].properties.parameters.allowedTagValues.value in {path}"
+    )
 
-    block = match.group(1)
-    groups = [single or double for single, double in re.findall(r"'([^']+)'|\"([^\"]+)\"", block)]
-    if not groups:
-        print(
-            "WARN: parsed empty childNetworkGroups default from bicep/main.bicep; using fallback list",
-            file=sys.stderr,
-        )
-        return DEFAULT_CHILD_NGS
 
-    return groups
+def hub_mappings(path: Path) -> tuple[set[str], set[str]]:
+    data = read_json(path)
+    mappings = (
+        data.get("parameters", {})
+        .get("ngMappings", {})
+        .get("defaultValue")
+    )
+    if not isinstance(mappings, list):
+        raise ValueError(f"Could not find parameters.ngMappings.defaultValue in {path}")
+
+    tag_values: set[str] = set()
+    ng_names: set[str] = set()
+
+    for entry in mappings:
+        if not isinstance(entry, dict) or "ng" not in entry or "tagValue" not in entry:
+            raise ValueError(f"Invalid ngMappings entry in {path}: {entry!r}")
+        ng_names.add(str(entry["ng"]))
+        tag_values.add(str(entry["tagValue"]))
+
+    return tag_values, ng_names
 
 
 def main() -> int:
-    root_assignment_path = REPO_ROOT / 'policy/assignments/root-mg-assignment.json'
-    hub_assignment_paths = [
-        REPO_ROOT / 'policy/assignments/hub-east-assignment.json',
-        REPO_ROOT / 'policy/assignments/hub-west-assignment.json',
-        REPO_ROOT / 'policy/assignments/hub-central-assignment.json',
-    ]
+    try:
+        allowed_tag_values = root_allowed_tag_values(ROOT_ASSIGNMENT)
+        hub_tag_values: set[str] = set()
+        hub_ng_names: set[str] = set()
 
-    root_assignment = load_json(root_assignment_path)
-    root_values = set(root_assignment['resources'][0]['properties']['parameters']['allowedTagValues']['value'])
-
-    expected_ngs = set(parse_child_network_groups(REPO_ROOT / 'bicep/main.bicep'))
-
-    hub_tag_values: set[str] = set()
-    invalid_ngs: list[str] = []
-
-    for hub_path in hub_assignment_paths:
-        hub_assignment = load_json(hub_path)
-        mappings = hub_assignment['parameters']['ngMappings']['defaultValue']
-        for mapping in mappings:
-            hub_tag_values.add(mapping['tagValue'])
-            if mapping['ng'] not in expected_ngs:
-                invalid_ngs.append(f"{hub_path.name}: '{mapping['ng']}'")
-
-    if root_values != hub_tag_values:
-        symmetric_diff = sorted(root_values.symmetric_difference(hub_tag_values))
-        print('ERROR: tag value sets do not match between root allowedTagValues and hub ngMappings.')
-        print('Symmetric difference:', ', '.join(symmetric_diff) if symmetric_diff else '(none)')
-        print('Root values:', ', '.join(sorted(root_values)))
-        print('Hub values: ', ', '.join(sorted(hub_tag_values)))
+        for assignment in HUB_ASSIGNMENTS:
+            tag_values, ng_names = hub_mappings(assignment)
+            hub_tag_values.update(tag_values)
+            hub_ng_names.update(ng_names)
+    except (OSError, json.JSONDecodeError, ValueError) as err:
+        print(f"ERROR: {err}")
         return 1
 
-    if invalid_ngs:
-        print('ERROR: Found ngMappings.ng values not present in expected child network groups:')
-        for item in invalid_ngs:
-            print(f' - {item}')
-        print('Expected NG values:', ', '.join(sorted(expected_ngs)))
+    unexpected_ngs = sorted(hub_ng_names - EXPECTED_NGS)
+    if unexpected_ngs:
+        print(
+            "ERROR: unexpected ngMappings[].ng value(s): "
+            f"{', '.join(unexpected_ngs)}. "
+            f"Expected only: {', '.join(sorted(EXPECTED_NGS))}"
+        )
         return 1
 
-    print(f'OK: {len(root_values)} tag values consistent across root + 3 hubs')
+    symmetric_diff = sorted(allowed_tag_values ^ hub_tag_values)
+    if symmetric_diff:
+        print(
+            "ERROR: root allowedTagValues and hub ngMappings tagValue sets differ. "
+            f"Symmetric difference ({len(symmetric_diff)}): {', '.join(symmetric_diff)}"
+        )
+        return 1
+
+    print(f"OK: {len(allowed_tag_values)} tag values consistent across root + 3 hubs")
     return 0
 
 
-if __name__ == '__main__':
-    raise SystemExit(main())
+if __name__ == "__main__":
+    sys.exit(main())
