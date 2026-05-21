@@ -20,7 +20,7 @@ arm/
 ```
 
 Nested templates are referenced **by relative path** (`relativePath`) in the
-orthchestrator. They must therefore be deployed either from a
+orchestrator. They must therefore be deployed either from a
 Git-linked deployment artifact or from a Storage Account with a SAS token —
 see `Deploy` below.
 

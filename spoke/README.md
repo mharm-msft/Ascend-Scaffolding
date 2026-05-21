@@ -53,9 +53,12 @@ tag **value** must match a Network Group name on the regional child AVNM:
 | West   | Prod    | `west-prod-spokes`    | `prod-spokes` on `avnm-hub-west` |
 | ...    | ...     | ...                   | ... |
 
-The authoritative list is the `tagValueToNetworkGroup` map in the active
-policy assignment — ask the platform team or check
-`policy/assignments/perHub.bicep`.
+The authoritative list is the `ngMappings` array in the active per-hub
+policy assignment — see
+[`policy/assignments/hub-east-assignment.json`](../policy/assignments/hub-east-assignment.json),
+[`hub-west-assignment.json`](../policy/assignments/hub-west-assignment.json),
+and [`hub-central-assignment.json`](../policy/assignments/hub-central-assignment.json),
+or ask the platform team.
 
 ## Bicep usage
 
