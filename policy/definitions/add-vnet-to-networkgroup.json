@@ -1,0 +1,56 @@
+{
+  "properties": {
+    "displayName": "AVNM: Add tagged VNet to Network Group",
+    "description": "Dynamically adds virtual networks carrying the configured tag value to the specified AVNM Network Group. Uses Microsoft.Network.Data policy mode and the addToNetworkGroup effect.",
+    "policyType": "Custom",
+    "mode": "Microsoft.Network.Data",
+    "metadata": {
+      "category": "AVNM-SaaS",
+      "version": "1.0.0"
+    },
+    "parameters": {
+      "networkGroupId": {
+        "type": "String",
+        "metadata": {
+          "displayName": "Target Network Group resource ID",
+          "description": "Full resource ID of the AVNM Network Group, e.g. /subscriptions/.../networkManagers/<avnm>/networkGroups/<ng>"
+        }
+      },
+      "tagKey": {
+        "type": "String",
+        "defaultValue": "avnmGroup"
+      },
+      "tagValue": {
+        "type": "String",
+        "metadata": {
+          "displayName": "Tag value mapped to this NG (e.g. east-prod-spokes)"
+        }
+      },
+      "requireRegion": {
+        "type": "String",
+        "metadata": { "displayName": "Restrict membership to a single Azure region (blank = any)" },
+        "defaultValue": ""
+      }
+    },
+    "policyRule": {
+      "if": {
+        "allOf": [
+          { "field": "type", "equals": "Microsoft.Network/virtualNetworks" },
+          { "field": "[concat('tags[', parameters('tagKey'), ']')]", "equals": "[parameters('tagValue')]" },
+          {
+            "anyOf": [
+              { "value": "[parameters('requireRegion')]", "equals": "" },
+              { "field": "location", "equals": "[parameters('requireRegion')]" }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "effect": "addToNetworkGroup",
+        "details": {
+          "networkGroupId": "[parameters('networkGroupId')]"
+        }
+      }
+    }
+  }
+}

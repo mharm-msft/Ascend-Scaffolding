@@ -1,0 +1,70 @@
+{
+  "properties": {
+    "displayName": "AVNM SaaS Spoke Governance",
+    "description": "Bundles tag governance, hub protection, and tag inheritance for the SaaS hub-and-spoke topology. NG dynamic membership assignments are deployed separately per Network Group.",
+    "policyType": "Custom",
+    "metadata": {
+      "category": "AVNM-SaaS",
+      "version": "1.0.0"
+    },
+    "parameters": {
+      "tagKey": {
+        "type": "String",
+        "defaultValue": "avnmGroup"
+      },
+      "allowedTagValues": {
+        "type": "Array",
+        "defaultValue": []
+      },
+      "hubNamePattern": {
+        "type": "String",
+        "defaultValue": "*-hub-vnet"
+      },
+      "tagRequirementEffect": {
+        "type": "String",
+        "allowedValues": [ "Audit", "Deny", "Disabled" ],
+        "defaultValue": "Audit"
+      },
+      "hubTagDenyEffect": {
+        "type": "String",
+        "allowedValues": [ "Audit", "Deny", "Disabled" ],
+        "defaultValue": "Deny"
+      }
+    },
+    "policyDefinitions": [
+      {
+        "policyDefinitionReferenceId": "require-spoke-tag",
+        "policyDefinitionId": "[concat(managementGroup().id, '/providers/Microsoft.Authorization/policyDefinitions/require-spoke-membership-tag')]",
+        "groupNames": [ "governance" ],
+        "parameters": {
+          "tagKey":           { "value": "[parameters('tagKey')]" },
+          "allowedTagValues": { "value": "[parameters('allowedTagValues')]" },
+          "hubNamePattern":   { "value": "[parameters('hubNamePattern')]" },
+          "effect":           { "value": "[parameters('tagRequirementEffect')]" }
+        }
+      },
+      {
+        "policyDefinitionReferenceId": "deny-hub-spoke-tag",
+        "policyDefinitionId": "[concat(managementGroup().id, '/providers/Microsoft.Authorization/policyDefinitions/deny-hub-tag-on-spoke-pattern')]",
+        "groupNames": [ "governance" ],
+        "parameters": {
+          "tagKey":         { "value": "[parameters('tagKey')]" },
+          "hubNamePattern": { "value": "[parameters('hubNamePattern')]" },
+          "effect":         { "value": "[parameters('hubTagDenyEffect')]" }
+        }
+      },
+      {
+        "policyDefinitionReferenceId": "inherit-spoke-tag",
+        "policyDefinitionId": "[concat(managementGroup().id, '/providers/Microsoft.Authorization/policyDefinitions/inherit-spoke-tag-from-rg')]",
+        "groupNames": [ "governance" ],
+        "parameters": {
+          "tagKey": { "value": "[parameters('tagKey')]" }
+        }
+      }
+    ],
+    "policyDefinitionGroups": [
+      { "name": "governance", "displayName": "Tag governance" },
+      { "name": "membership", "displayName": "AVNM Network Group membership" }
+    ]
+  }
+}
