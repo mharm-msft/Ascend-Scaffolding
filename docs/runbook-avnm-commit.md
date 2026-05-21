@@ -97,10 +97,7 @@ az network manager post-commit \
 For the operator who doesn't want to grant themselves direct Azure CLI
 access (or wants an auditable record).
 
-> **Note:** the workflow file (`.github/workflows/commit-avnm.yml`) must
-> be added by a maintainer with the `workflow` token scope — it cannot be
-> created by the chat-tool token that pushed this runbook. The exact
-> file content is provided alongside the PR that introduced this runbook.
+> Workflow definition: `.github/workflows/commit-avnm.yml`.
 
 1. Go to **Actions → “AVNM: commit configuration” → Run workflow**.
 2. Fill in:
