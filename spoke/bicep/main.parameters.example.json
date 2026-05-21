@@ -1,0 +1,28 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location":             { "value": "eastus" },
+    "resourceGroupName":    { "value": "rg-app42-prod-eastus" },
+    "createResourceGroup":  { "value": true },
+    "vnetName":             { "value": "vnet-app42-prod-eastus" },
+    "addressSpace":         { "value": "10.100.42.0/24" },
+    "avnmGroupTagKey":      { "value": "avnmGroup" },
+    "avnmGroupTagValue":    { "value": "east-prod-spokes" },
+    "createBaselineNsg":    { "value": true },
+    "extraTags": {
+      "value": {
+        "app":     "app42",
+        "env":     "prod",
+        "owner":   "team-app42",
+        "costCenter": "CC-12345"
+      }
+    },
+    "subnets": {
+      "value": [
+        { "name": "app",  "prefix": "10.100.42.0/26" },
+        { "name": "data", "prefix": "10.100.42.64/26" }
+      ]
+    }
+  }
+}
