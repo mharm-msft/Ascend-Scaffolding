@@ -1,0 +1,42 @@
+# Copy to terraform.tfvars and fill in real subscription IDs.
+
+root_mg_name           = "mg-saas-platform"
+parent_avnm_name       = "avnm-root"
+parent_subscription_id = "00000000-0000-0000-0000-000000000000"
+parent_resource_group  = "rg-avnm-parent"
+parent_location        = "eastus"
+
+max_spokes_per_hub             = 500
+tag_key_for_membership         = "avnmGroup"
+enable_security_admin_baseline = true
+
+baseline_network_groups = ["all-spokes", "prod", "nonprod", "dr"]
+child_network_groups    = ["prod-spokes", "nonprod-spokes", "dr-spokes"]
+
+hubs = [
+  {
+    name            = "avnm-hub-east"
+    location        = "eastus"
+    mg_name         = "mg-hub-eastus"
+    subscription_id = "00000000-0000-0000-0000-000000000000"
+    resource_group  = "rg-avnm-east"
+    address_space   = "10.10.0.0/12"
+  },
+  {
+    name            = "avnm-hub-west"
+    location        = "westus2"
+    mg_name         = "mg-hub-westus"
+    subscription_id = "00000000-0000-0000-0000-000000000000"
+    resource_group  = "rg-avnm-west"
+    address_space   = "10.30.0.0/12"
+  },
+  {
+    name            = "avnm-hub-central"
+    location        = "centralus"
+    mg_name         = "mg-hub-centralus"
+    subscription_id = "00000000-0000-0000-0000-000000000000"
+    resource_group  = "rg-avnm-central"
+    address_space   = "10.50.0.0/12"
+    # max_spokes    = 1500   # Uncomment to override the default just for this hub
+  }
+]
