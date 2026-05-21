@@ -1,0 +1,54 @@
+{
+  "properties": {
+    "displayName": "AVNM: Require membership tag on spoke VNets",
+    "description": "Audits or denies virtual networks that do not carry the AVNM membership tag (default: avnmGroup). Hub VNets identified by name pattern are exempted.",
+    "policyType": "Custom",
+    "mode": "All",
+    "metadata": {
+      "category": "AVNM-SaaS",
+      "version": "1.0.0"
+    },
+    "parameters": {
+      "tagKey": {
+        "type": "String",
+        "metadata": { "displayName": "Membership tag key" },
+        "defaultValue": "avnmGroup"
+      },
+      "allowedTagValues": {
+        "type": "Array",
+        "metadata": { "displayName": "Allowed NG tag values" },
+        "defaultValue": []
+      },
+      "hubNamePattern": {
+        "type": "String",
+        "metadata": { "displayName": "Hub VNet name pattern (wildcard, exempted)" },
+        "defaultValue": "*-hub-vnet"
+      },
+      "effect": {
+        "type": "String",
+        "allowedValues": [ "Audit", "Deny", "Disabled" ],
+        "defaultValue": "Audit"
+      }
+    },
+    "policyRule": {
+      "if": {
+        "allOf": [
+          { "field": "type", "equals": "Microsoft.Network/virtualNetworks" },
+          { "not": { "field": "name", "like": "[parameters('hubNamePattern')]" } },
+          {
+            "anyOf": [
+              { "field": "[concat('tags[', parameters('tagKey'), ']')]", "exists": "false" },
+              {
+                "allOf": [
+                  { "value": "[length(parameters('allowedTagValues'))]", "greater": 0 },
+                  { "field": "[concat('tags[', parameters('tagKey'), ']')]", "notIn": "[parameters('allowedTagValues')]" }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "then": { "effect": "[parameters('effect')]" }
+    }
+  }
+}

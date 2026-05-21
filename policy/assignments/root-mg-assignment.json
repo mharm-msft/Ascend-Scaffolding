@@ -1,0 +1,35 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "rootMgName": { "type": "string", "defaultValue": "mg-saas-platform" }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2023-04-01",
+      "name": "avnm-saas-governance",
+      "location": "eastus",
+      "identity": { "type": "SystemAssigned" },
+      "properties": {
+        "displayName": "AVNM SaaS Spoke Governance (Root MG)",
+        "policyDefinitionId": "[concat('/providers/Microsoft.Management/managementGroups/', parameters('rootMgName'), '/providers/Microsoft.Authorization/policySetDefinitions/avnm-saas-spoke-governance')]",
+        "scope": "[concat('/providers/Microsoft.Management/managementGroups/', parameters('rootMgName'))]",
+        "enforcementMode": "Default",
+        "parameters": {
+          "tagKey":               { "value": "avnmGroup" },
+          "tagRequirementEffect": { "value": "Audit" },
+          "hubTagDenyEffect":     { "value": "Deny" },
+          "hubNamePattern":       { "value": "*-hub-vnet" },
+          "allowedTagValues": {
+            "value": [
+              "east-prod-spokes", "east-nonprod-spokes", "east-dr-spokes",
+              "west-prod-spokes", "west-nonprod-spokes", "west-dr-spokes",
+              "central-prod-spokes", "central-nonprod-spokes", "central-dr-spokes"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

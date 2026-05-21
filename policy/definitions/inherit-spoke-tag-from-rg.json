@@ -1,0 +1,36 @@
+{
+  "properties": {
+    "displayName": "AVNM: Inherit membership tag from resource group",
+    "description": "If a virtual network is missing the AVNM membership tag but its parent resource group has one, modify the VNet to inherit it.",
+    "policyType": "Custom",
+    "mode": "Indexed",
+    "metadata": { "category": "AVNM-SaaS", "version": "1.0.0" },
+    "parameters": {
+      "tagKey": { "type": "String", "defaultValue": "avnmGroup" }
+    },
+    "policyRule": {
+      "if": {
+        "allOf": [
+          { "field": "type", "equals": "Microsoft.Network/virtualNetworks" },
+          { "field": "[concat('tags[', parameters('tagKey'), ']')]", "exists": "false" },
+          { "value": "[resourceGroup().tags[parameters('tagKey')]]", "notEquals": "" }
+        ]
+      },
+      "then": {
+        "effect": "modify",
+        "details": {
+          "roleDefinitionIds": [
+            "/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"
+          ],
+          "operations": [
+            {
+              "operation": "add",
+              "field": "[concat('tags[', parameters('tagKey'), ']')]",
+              "value": "[resourceGroup().tags[parameters('tagKey')]]"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

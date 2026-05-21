@@ -1,0 +1,28 @@
+{
+  "properties": {
+    "displayName": "AVNM: Deny membership tag on hub-named VNets",
+    "description": "Prevents VNets whose name matches the hub pattern from being added to spoke Network Groups via tag.",
+    "policyType": "Custom",
+    "mode": "All",
+    "metadata": { "category": "AVNM-SaaS", "version": "1.0.0" },
+    "parameters": {
+      "tagKey": { "type": "String", "defaultValue": "avnmGroup" },
+      "hubNamePattern": { "type": "String", "defaultValue": "*-hub-vnet" },
+      "effect": {
+        "type": "String",
+        "allowedValues": [ "Audit", "Deny", "Disabled" ],
+        "defaultValue": "Deny"
+      }
+    },
+    "policyRule": {
+      "if": {
+        "allOf": [
+          { "field": "type", "equals": "Microsoft.Network/virtualNetworks" },
+          { "field": "name", "like": "[parameters('hubNamePattern')]" },
+          { "field": "[concat('tags[', parameters('tagKey'), ']')]", "exists": "true" }
+        ]
+      },
+      "then": { "effect": "[parameters('effect')]" }
+    }
+  }
+}
