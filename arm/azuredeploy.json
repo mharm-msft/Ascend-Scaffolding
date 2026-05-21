@@ -1,0 +1,68 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "rootMgName":               { "type": "string",  "defaultValue": "mg-saas-platform" },
+    "parentAvnmName":           { "type": "string",  "defaultValue": "avnm-root" },
+    "parentSubscriptionId":     { "type": "string" },
+    "parentResourceGroup":      { "type": "string",  "defaultValue": "rg-avnm-parent" },
+    "parentLocation":           { "type": "string",  "defaultValue": "eastus" },
+    "maxSpokesPerHub":          { "type": "int",     "defaultValue": 500, "minValue": 1, "maxValue": 10000 },
+    "baselineNetworkGroups":    { "type": "array",   "defaultValue": [ "all-spokes", "prod", "nonprod", "dr" ] },
+    "childNetworkGroups":       { "type": "array",   "defaultValue": [ "prod-spokes", "nonprod-spokes", "dr-spokes" ] },
+    "hubs": {
+      "type": "array",
+      "defaultValue": [
+        { "name": "avnm-hub-east",    "location": "eastus",    "mgName": "mg-hub-eastus",    "subscriptionId": "", "resourceGroup": "rg-avnm-east",    "addressSpace": "10.10.0.0/12" },
+        { "name": "avnm-hub-west",    "location": "westus2",   "mgName": "mg-hub-westus",    "subscriptionId": "", "resourceGroup": "rg-avnm-west",    "addressSpace": "10.30.0.0/12" },
+        { "name": "avnm-hub-central", "location": "centralus", "mgName": "mg-hub-centralus", "subscriptionId": "", "resourceGroup": "rg-avnm-central", "addressSpace": "10.50.0.0/12" }
+      ]
+    },
+    "tagKeyForMembership":         { "type": "string", "defaultValue": "avnmGroup" },
+    "enableSecurityAdminBaseline": { "type": "bool",   "defaultValue": true }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "avnm-parent",
+      "subscriptionId": "[parameters('parentSubscriptionId')]",
+      "location": "[parameters('parentLocation')]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": { "relativePath": "nested/avnmParent.json" },
+        "parameters": {
+          "name":                          { "value": "[parameters('parentAvnmName')]" },
+          "location":                      { "value": "[parameters('parentLocation')]" },
+          "resourceGroupName":             { "value": "[parameters('parentResourceGroup')]" },
+          "rootMgName":                    { "value": "[parameters('rootMgName')]" },
+          "baselineNetworkGroups":         { "value": "[parameters('baselineNetworkGroups')]" },
+          "enableSecurityAdminBaseline":   { "value": "[parameters('enableSecurityAdminBaseline')]" }
+        }
+      }
+    },
+    {
+      "copy": { "name": "hubLoop", "count": "[length(parameters('hubs'))]" },
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "[concat('avnm-child-', parameters('hubs')[copyIndex()].name)]",
+      "subscriptionId": "[parameters('hubs')[copyIndex()].subscriptionId]",
+      "location": "[parameters('hubs')[copyIndex()].location]",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": { "relativePath": "nested/avnmChildHub.json" },
+        "parameters": {
+          "name":               { "value": "[parameters('hubs')[copyIndex()].name]" },
+          "location":           { "value": "[parameters('hubs')[copyIndex()].location]" },
+          "resourceGroupName":  { "value": "[parameters('hubs')[copyIndex()].resourceGroup]" },
+          "mgName":             { "value": "[parameters('hubs')[copyIndex()].mgName]" },
+          "addressSpace":       { "value": "[parameters('hubs')[copyIndex()].addressSpace]" },
+          "maxSpokes":          { "value": "[if(contains(parameters('hubs')[copyIndex()], 'maxSpokes'), parameters('hubs')[copyIndex()].maxSpokes, parameters('maxSpokesPerHub'))]" },
+          "networkGroups":      { "value": "[if(contains(parameters('hubs')[copyIndex()], 'networkGroups'), parameters('hubs')[copyIndex()].networkGroups, parameters('childNetworkGroups'))]" },
+          "tagKey":             { "value": "[parameters('tagKeyForMembership')]" }
+        }
+      }
+    }
+  ],
+  "outputs": {}
+}

@@ -1,0 +1,99 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "name":          { "type": "string" },
+    "location":      { "type": "string" },
+    "mgName":        { "type": "string" },
+    "addressSpace":  { "type": "string" },
+    "maxSpokes":     { "type": "int" },
+    "networkGroups": { "type": "array" },
+    "tagKey":        { "type": "string" }
+  },
+  "variables": {
+    "mgId":      "[concat('/providers/Microsoft.Management/managementGroups/', parameters('mgName'))]",
+    "hubVnetName": "[concat(parameters('name'), '-hub-vnet')]",
+    "hnsConfigName": "[concat(parameters('name'), '-hns')]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/networkManagers",
+      "apiVersion": "2024-05-01",
+      "name": "[parameters('name')]",
+      "location": "[parameters('location')]",
+      "tags": {
+        "role":      "avnm-child-hub",
+        "maxSpokes": "[string(parameters('maxSpokes'))]",
+        "tagKey":    "[parameters('tagKey')]"
+      },
+      "properties": {
+        "networkManagerScopes": {
+          "managementGroups": [ "[variables('mgId')]" ],
+          "subscriptions": []
+        },
+        "networkManagerScopeAccesses": [ "Connectivity", "SecurityAdmin" ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/virtualNetworks",
+      "apiVersion": "2024-01-01",
+      "name": "[variables('hubVnetName')]",
+      "location": "[parameters('location')]",
+      "tags": { "role": "hub", "avnm": "[parameters('name')]" },
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [ "[parameters('addressSpace')]" ]
+        }
+      }
+    },
+    {
+      "copy": { "name": "ngLoop", "count": "[length(parameters('networkGroups'))]" },
+      "type": "Microsoft.Network/networkManagers/networkGroups",
+      "apiVersion": "2024-05-01",
+      "name": "[concat(parameters('name'), '/', parameters('networkGroups')[copyIndex()])]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkManagers', parameters('name'))]"
+      ],
+      "properties": {
+        "description": "[concat('Spoke network group ', parameters('networkGroups')[copyIndex()], ' for hub ', parameters('name'))]"
+      }
+    },
+    {
+      "type": "Microsoft.Network/networkManagers/connectivityConfigurations",
+      "apiVersion": "2024-05-01",
+      "name": "[concat(parameters('name'), '/', variables('hnsConfigName'))]",
+      "dependsOn": [
+        "ngLoop",
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]"
+      ],
+      "properties": {
+        "description": "[concat('Hub-and-Spoke topology for ', parameters('name'), ' (max ', string(parameters('maxSpokes')), ' spokes)')]",
+        "connectivityTopology": "HubAndSpoke",
+        "hubs": [
+          {
+            "resourceId":   "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]",
+            "resourceType": "Microsoft.Network/virtualNetworks"
+          }
+        ],
+        "isGlobal":              "False",
+        "deleteExistingPeering": "True",
+        "copy": [
+          {
+            "name": "appliesToGroups",
+            "count": "[length(parameters('networkGroups'))]",
+            "input": {
+              "networkGroupId":    "[resourceId('Microsoft.Network/networkManagers/networkGroups', parameters('name'), parameters('networkGroups')[copyIndex('appliesToGroups')])]",
+              "groupConnectivity": "None",
+              "useHubGateway":     "False",
+              "isGlobal":          "False"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "outputs": {
+    "avnmId":    { "type": "string", "value": "[resourceId('Microsoft.Network/networkManagers', parameters('name'))]" },
+    "hubVnetId": { "type": "string", "value": "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]" }
+  }
+}

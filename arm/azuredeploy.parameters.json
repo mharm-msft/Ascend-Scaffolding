@@ -1,0 +1,23 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "rootMgName":           { "value": "mg-saas-platform" },
+    "parentAvnmName":       { "value": "avnm-root" },
+    "parentSubscriptionId": { "value": "00000000-0000-0000-0000-000000000000" },
+    "parentResourceGroup":  { "value": "rg-avnm-parent" },
+    "parentLocation":       { "value": "eastus" },
+    "maxSpokesPerHub":      { "value": 500 },
+    "tagKeyForMembership":  { "value": "avnmGroup" },
+    "enableSecurityAdminBaseline": { "value": true },
+    "baselineNetworkGroups": { "value": [ "all-spokes", "prod", "nonprod", "dr" ] },
+    "childNetworkGroups":    { "value": [ "prod-spokes", "nonprod-spokes", "dr-spokes" ] },
+    "hubs": {
+      "value": [
+        { "name": "avnm-hub-east",    "location": "eastus",    "mgName": "mg-hub-eastus",    "subscriptionId": "00000000-0000-0000-0000-000000000000", "resourceGroup": "rg-avnm-east",    "addressSpace": "10.10.0.0/12" },
+        { "name": "avnm-hub-west",    "location": "westus2",   "mgName": "mg-hub-westus",    "subscriptionId": "00000000-0000-0000-0000-000000000000", "resourceGroup": "rg-avnm-west",    "addressSpace": "10.30.0.0/12" },
+        { "name": "avnm-hub-central", "location": "centralus", "mgName": "mg-hub-centralus", "subscriptionId": "00000000-0000-0000-0000-000000000000", "resourceGroup": "rg-avnm-central", "addressSpace": "10.50.0.0/12" }
+      ]
+    }
+  }
+}
