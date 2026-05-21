@@ -30,3 +30,7 @@ arm/         ARM JSON implementation (parallel)
 - [ ] Bicep modules
 - [ ] Terraform modules
 - [ ] ARM templates
+
+## CI
+
+- [IaC Validate workflow](.github/workflows/iac-validate.yml)

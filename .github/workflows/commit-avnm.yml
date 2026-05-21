@@ -1,0 +1,97 @@
+name: "AVNM: commit configuration"
+
+on:
+  workflow_dispatch:
+    inputs:
+      avnm_resource_id:
+        description: "Full ARM resource ID of the AVNM resource"
+        required: true
+        type: string
+      commit_type:
+        description: "Commit type"
+        required: true
+        default: Connectivity
+        type: choice
+        options:
+          - Connectivity
+          - SecurityAdmin
+      target_locations:
+        description: "Comma-separated Azure regions (for example: eastus,westus2)"
+        required: true
+        type: string
+      configuration_ids:
+        description: "Comma-separated AVNM configuration resource IDs"
+        required: true
+        type: string
+      dry_run:
+        description: "Print command only and skip az post-commit call"
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  post-commit:
+    runs-on: ubuntu-latest
+    environment: avnm-commit
+    steps:
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          allow-no-subscriptions: true
+
+      - name: Parse AVNM resource ID
+        id: parse
+        shell: bash
+        run: |
+          set -euo pipefail
+          AVNM_ID='${{ inputs.avnm_resource_id }}'
+          SUBSCRIPTION_ID=$(awk -F'/' '{for(i=1;i<=NF;i++) if($i=="subscriptions") print $(i+1)}' <<< "$AVNM_ID")
+          RESOURCE_GROUP=$(awk -F'/' '{for(i=1;i<=NF;i++) if($i=="resourceGroups") print $(i+1)}' <<< "$AVNM_ID")
+          AVNM_NAME=$(awk -F'/' '{print $NF}' <<< "$AVNM_ID")
+
+          if [ -z "$SUBSCRIPTION_ID" ] || [ -z "$RESOURCE_GROUP" ] || [ -z "$AVNM_NAME" ]; then
+            echo "::error::Could not parse subscription/resourceGroup/name from avnm_resource_id"
+            exit 1
+          fi
+
+          echo "subscription_id=$SUBSCRIPTION_ID" >> "$GITHUB_OUTPUT"
+          echo "resource_group=$RESOURCE_GROUP" >> "$GITHUB_OUTPUT"
+          echo "avnm_name=$AVNM_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Set subscription
+        run: az account set --subscription '${{ steps.parse.outputs.subscription_id }}'
+
+      - name: Commit AVNM configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          REGIONS=$(echo '${{ inputs.target_locations }}' | tr ',' ' ')
+          CONFIG_IDS=$(echo '${{ inputs.configuration_ids }}' | tr ',' ' ')
+
+          echo "AVNM: ${{ inputs.avnm_resource_id }}"
+          echo "Commit type: ${{ inputs.commit_type }}"
+          echo "Target regions: $REGIONS"
+          echo "Configuration IDs: $CONFIG_IDS"
+
+          if [ '${{ inputs.dry_run }}' = 'true' ]; then
+            echo '::notice::dry_run=true; skipping az network manager post-commit'
+            exit 0
+          fi
+
+          az network manager post-commit \
+            --network-manager-name '${{ steps.parse.outputs.avnm_name }}' \
+            --resource-group '${{ steps.parse.outputs.resource_group }}' \
+            --commit-type '${{ inputs.commit_type }}' \
+            --target-locations $REGIONS \
+            --configuration-ids $CONFIG_IDS
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "- AVNM: \`${{ inputs.avnm_resource_id }}\` | Commit type: \`${{ inputs.commit_type }}\` | Regions: \`${{ inputs.target_locations }}\` | Config IDs deployed: \`${{ inputs.configuration_ids }}\`" >> "$GITHUB_STEP_SUMMARY"
