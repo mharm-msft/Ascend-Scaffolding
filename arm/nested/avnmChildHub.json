@@ -1,0 +1,45 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "name":               { "type": "string" },
+    "location":           { "type": "string" },
+    "resourceGroupName":  { "type": "string" },
+    "mgName":             { "type": "string" },
+    "addressSpace":       { "type": "string" },
+    "maxSpokes":          { "type": "int", "defaultValue": 500, "minValue": 1, "maxValue": 10000 },
+    "networkGroups":      { "type": "array" },
+    "tagKey":             { "type": "string", "defaultValue": "avnmGroup" }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/resourceGroups",
+      "apiVersion": "2023-07-01",
+      "name": "[parameters('resourceGroupName')]",
+      "location": "[parameters('location')]",
+      "properties": {}
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "[concat('avnm-child-', parameters('name'), '-inner')]",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": { "relativePath": "avnmChildHubInner.json" },
+        "parameters": {
+          "name":          { "value": "[parameters('name')]" },
+          "location":      { "value": "[parameters('location')]" },
+          "mgName":        { "value": "[parameters('mgName')]" },
+          "addressSpace":  { "value": "[parameters('addressSpace')]" },
+          "maxSpokes":     { "value": "[parameters('maxSpokes')]" },
+          "networkGroups": { "value": "[parameters('networkGroups')]" },
+          "tagKey":        { "value": "[parameters('tagKey')]" }
+        }
+      }
+    }
+  ]
+}

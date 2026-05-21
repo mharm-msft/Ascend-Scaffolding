@@ -1,0 +1,65 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "name":                          { "type": "string" },
+    "location":                      { "type": "string" },
+    "rootMgName":                    { "type": "string" },
+    "baselineNetworkGroups":         { "type": "array" },
+    "enableSecurityAdminBaseline":   { "type": "bool", "defaultValue": true }
+  },
+  "variables": {
+    "rootMgId": "[concat('/providers/Microsoft.Management/managementGroups/', parameters('rootMgName'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/networkManagers",
+      "apiVersion": "2024-05-01",
+      "name": "[parameters('name')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "networkManagerScopes": {
+          "managementGroups": [ "[variables('rootMgId')]" ],
+          "subscriptions": []
+        },
+        "networkManagerScopeAccesses": [ "Connectivity", "SecurityAdmin" ]
+      }
+    },
+    {
+      "copy": { "name": "ngLoop", "count": "[length(parameters('baselineNetworkGroups'))]" },
+      "type": "Microsoft.Network/networkManagers/networkGroups",
+      "apiVersion": "2024-05-01",
+      "name": "[concat(parameters('name'), '/', parameters('baselineNetworkGroups')[copyIndex()])]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkManagers', parameters('name'))]"
+      ],
+      "properties": {
+        "description": "[concat('Baseline network group ', parameters('baselineNetworkGroups')[copyIndex()], ' at parent AVNM')]"
+      }
+    },
+    {
+      "condition": "[parameters('enableSecurityAdminBaseline')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "baseline-security-admin",
+      "dependsOn": [
+        "ngLoop"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": { "relativePath": "securityAdminRules.json" },
+        "parameters": {
+          "avnmName":           { "value": "[parameters('name')]" },
+          "networkGroupNames":  { "value": "[parameters('baselineNetworkGroups')]" },
+          "collectionName":     { "value": "baseline-deny-from-internet" }
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "avnmId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Network/networkManagers', parameters('name'))]"
+    }
+  }
+}

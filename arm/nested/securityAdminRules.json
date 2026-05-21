@@ -1,0 +1,71 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "avnmName":          { "type": "string" },
+    "networkGroupNames": { "type": "array" },
+    "collectionName":    { "type": "string", "defaultValue": "baseline-deny-from-internet" }
+  },
+  "variables": {
+    "configName": "baseline-security-admin",
+    "denyPorts": [
+      { "name": "deny-inbound-rdp",    "port": "3389" },
+      { "name": "deny-inbound-ssh",    "port": "22"   },
+      { "name": "deny-inbound-smb",    "port": "445"  },
+      { "name": "deny-inbound-winrm",  "port": "5985" },
+      { "name": "deny-inbound-winrms", "port": "5986" }
+    ]
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/networkManagers/securityAdminConfigurations",
+      "apiVersion": "2024-05-01",
+      "name": "[concat(parameters('avnmName'), '/', variables('configName'))]",
+      "properties": {
+        "description": "Baseline SecurityAdmin configuration owned by the parent AVNM",
+        "applyOnNetworkIntentPolicyBasedServices": [ "None" ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/networkManagers/securityAdminConfigurations/ruleCollections",
+      "apiVersion": "2024-05-01",
+      "name": "[concat(parameters('avnmName'), '/', variables('configName'), '/', parameters('collectionName'))]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkManagers/securityAdminConfigurations', parameters('avnmName'), variables('configName'))]"
+      ],
+      "properties": {
+        "description": "Deny common management ports inbound from Internet",
+        "copy": [
+          {
+            "name": "appliesToGroups",
+            "count": "[length(parameters('networkGroupNames'))]",
+            "input": {
+              "networkGroupId": "[resourceId('Microsoft.Network/networkManagers/networkGroups', parameters('avnmName'), parameters('networkGroupNames')[copyIndex('appliesToGroups')])]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "copy": { "name": "ruleLoop", "count": "[length(variables('denyPorts'))]" },
+      "type": "Microsoft.Network/networkManagers/securityAdminConfigurations/ruleCollections/rules",
+      "apiVersion": "2024-05-01",
+      "kind": "Custom",
+      "name": "[concat(parameters('avnmName'), '/', variables('configName'), '/', parameters('collectionName'), '/', variables('denyPorts')[copyIndex()].name)]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkManagers/securityAdminConfigurations/ruleCollections', parameters('avnmName'), variables('configName'), parameters('collectionName'))]"
+      ],
+      "properties": {
+        "description":  "[concat('Deny ', variables('denyPorts')[copyIndex()].name, ' from Internet')]",
+        "direction":    "Inbound",
+        "access":       "Deny",
+        "priority":     "[add(100, copyIndex())]",
+        "protocol":     "Tcp",
+        "sources":      [ { "addressPrefixType": "ServiceTag", "addressPrefix": "Internet" } ],
+        "destinations": [ { "addressPrefixType": "IPPrefix",   "addressPrefix": "*" } ],
+        "sourcePortRanges":      [ "0-65535" ],
+        "destinationPortRanges": [ "[variables('denyPorts')[copyIndex()].port]" ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "name":                          { "type": "string" },
+    "location":                      { "type": "string" },
+    "resourceGroupName":             { "type": "string" },
+    "rootMgName":                    { "type": "string" },
+    "baselineNetworkGroups":         { "type": "array" },
+    "enableSecurityAdminBaseline":   { "type": "bool", "defaultValue": true }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/resourceGroups",
+      "apiVersion": "2023-07-01",
+      "name": "[parameters('resourceGroupName')]",
+      "location": "[parameters('location')]",
+      "properties": {}
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "avnm-parent-inner",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": { "relativePath": "avnmParentInner.json" },
+        "parameters": {
+          "name":                          { "value": "[parameters('name')]" },
+          "location":                      { "value": "[parameters('location')]" },
+          "rootMgName":                    { "value": "[parameters('rootMgName')]" },
+          "baselineNetworkGroups":         { "value": "[parameters('baselineNetworkGroups')]" },
+          "enableSecurityAdminBaseline":   { "value": "[parameters('enableSecurityAdminBaseline')]" }
+        }
+      }
+    }
+  ]
+}
