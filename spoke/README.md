@@ -68,7 +68,7 @@ module spoke 'bicep/spoke.bicep' = {
     location:           'eastus'
     resourceGroupName:  'rg-app42-prod-eastus'
     vnetName:           'vnet-app42-prod-eastus'
-    addressSpace:       '10.100.42.0/24'
+    addressSpace:       ['10.100.42.0/24']
     avnmGroupTagValue:  'east-prod-spokes'
     subnets: [
       { name: 'app',  prefix: '10.100.42.0/26' }
@@ -117,7 +117,7 @@ See `terraform/examples/app42-prod-eastus/` for a complete example.
 | `resourceGroupName` | `resource_group_name` | Target RG. |
 | `createResourceGroup` | `create_resource_group` | Default `true`. |
 | `vnetName` | `vnet_name` | |
-| `addressSpace` | `address_space` | `string` in Bicep, `list(string)` in TF. TF supports multi-CIDR VNets. |
+| `addressSpace` | `address_space` | `array` in Bicep, `list(string)` in Terraform. |
 | `avnmGroupTagKey` | `avnm_group_tag_key` | Default `avnmGroup`. |
 | `avnmGroupTagValue` | `avnm_group_tag_value` | Must match an NG name (see table above). |
 | `subnets` | `subnets` | List of `{name, prefix}` (Bicep also accepts optional `nsgId`). |

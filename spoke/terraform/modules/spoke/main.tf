@@ -1,9 +1,9 @@
 terraform {
-  required_version = ">= 1.5.0"
+  required_version = ">= 1.6.0"
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.110"
+      version = "~> 4.0"
     }
   }
 }
@@ -29,6 +29,7 @@ resource "azurerm_network_security_group" "baseline" {
   resource_group_name = var.resource_group_name
   tags                = local.merged_tags
 
+  # TODO: split inline security_rule to azurerm_network_security_rule for v5 forward compat
   security_rule {
     name                       = "deny-inbound-internet-management"
     description                = "Belt-and-braces deny on top of AVNM SecurityAdmin baseline"
