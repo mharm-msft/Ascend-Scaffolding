@@ -4,7 +4,7 @@
   "parameters": {
     "rootMgName":        { "type": "string", "defaultValue": "mg-saas-platform" },
     "hubMgName":         { "type": "string", "defaultValue": "mg-hub-westus" },
-    "hubRegion":         { "type": "string", "defaultValue": "westus2" },
+    "hubRegion":         { "type": "string", "defaultValue": "westus3" },
     "avnmName":          { "type": "string", "defaultValue": "avnm-hub-west" },
     "avnmResourceGroup": { "type": "string", "defaultValue": "rg-avnm-west" },
     "subscriptionId":    { "type": "string" },

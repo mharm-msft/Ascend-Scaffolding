@@ -14,7 +14,7 @@
       "type": "array",
       "defaultValue": [
         { "name": "avnm-hub-east",    "location": "eastus",    "mgName": "mg-hub-eastus",    "subscriptionId": "", "resourceGroup": "rg-avnm-east",    "addressSpace": "10.10.0.0/12" },
-        { "name": "avnm-hub-west",    "location": "westus2",   "mgName": "mg-hub-westus",    "subscriptionId": "", "resourceGroup": "rg-avnm-west",    "addressSpace": "10.30.0.0/12" },
+        { "name": "avnm-hub-west",    "location": "westus3",   "mgName": "mg-hub-westus",    "subscriptionId": "", "resourceGroup": "rg-avnm-west",    "addressSpace": "10.30.0.0/12" },
         { "name": "avnm-hub-central", "location": "centralus", "mgName": "mg-hub-centralus", "subscriptionId": "", "resourceGroup": "rg-avnm-central", "addressSpace": "10.50.0.0/12" }
       ]
     },

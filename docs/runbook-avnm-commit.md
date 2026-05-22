@@ -103,7 +103,7 @@ access (or wants an auditable record).
 2. Fill in:
    - `avnm_resource_id` — full ARM ID of the AVNM.
    - `commit_type` — `Connectivity` or `SecurityAdmin`.
-   - `target_locations` — comma-separated regions (e.g. `eastus,westus2`).
+   - `target_locations` — comma-separated regions (e.g. `eastus,westus3`).
    - `configuration_ids` — comma-separated config IDs.
    - `dry_run` — `true` to print and exit without calling Azure.
 3. The job posts the commit and prints the resulting deployment-status
