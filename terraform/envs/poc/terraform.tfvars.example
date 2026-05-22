@@ -24,7 +24,7 @@ hubs = [
   },
   {
     name            = "avnm-hub-west"
-    location        = "westus2"
+    location        = "westus3"
     mg_name         = "mg-hub-westus"
     subscription_id = "00000000-0000-0000-0000-000000000000"
     resource_group  = "rg-avnm-west"

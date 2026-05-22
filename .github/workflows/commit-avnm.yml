@@ -16,7 +16,7 @@ on:
           - Connectivity
           - SecurityAdmin
       target_locations:
-        description: "Comma-separated Azure regions (for example: eastus,westus2)"
+        description: "Comma-separated Azure regions (for example: eastus,westus3)"
         required: true
         type: string
       configuration_ids:

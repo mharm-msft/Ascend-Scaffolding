@@ -8,8 +8,9 @@ hub-and-spoke SaaS POC, grounded in Azure Policy. Designed to scale from a
 
 - **Parent AVNM** at the root management group (`mg-saas-platform`) for
   cross-region governance and baseline SecurityAdmin rules.
-- **Three child AVNM instances**, one per region (East US, West US 2, Central US),
+- **Three child AVNM instances**, one per region (East US, West US 3, Central US),
   each acting as a transit hub for up to `maxSpokesPerHub` spokes (default 500).
+  Regions are defaults only — override via the IaC's `hubs` parameter.
 - **Azure Policy** drives dynamic Network Group membership via the
   `addToNetworkGroup` effect (`Microsoft.Network.Data` mode), keyed off a
   VNet tag (`avnmGroup`).

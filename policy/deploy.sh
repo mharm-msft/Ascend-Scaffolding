@@ -56,7 +56,7 @@ az deployment mg create \
 echo "==> 4/4 Per-hub NG assignments (run AFTER child AVNMs are deployed)"
 echo "     Example commands:"
 echo "     az deployment mg create --management-group-id mg-hub-eastus    --location eastus    --template-file assignments/hub-east-assignment.json    --parameters subscriptionId=$SUB_ID"
-echo "     az deployment mg create --management-group-id mg-hub-westus    --location westus2   --template-file assignments/hub-west-assignment.json    --parameters subscriptionId=$SUB_ID"
+echo "     az deployment mg create --management-group-id mg-hub-westus    --location westus3   --template-file assignments/hub-west-assignment.json    --parameters subscriptionId=$SUB_ID"
 echo "     az deployment mg create --management-group-id mg-hub-centralus --location centralus --template-file assignments/hub-central-assignment.json --parameters subscriptionId=$SUB_ID"
 
 echo "Done."

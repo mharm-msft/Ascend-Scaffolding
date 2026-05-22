@@ -74,7 +74,7 @@ variable "hubs" {
     },
     {
       name            = "avnm-hub-west"
-      location        = "westus2"
+      location        = "westus3"
       mg_name         = "mg-hub-westus"
       subscription_id = ""
       resource_group  = "rg-avnm-west"

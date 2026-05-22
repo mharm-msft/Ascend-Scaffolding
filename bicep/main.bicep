@@ -45,7 +45,7 @@ param hubs array = [
   }
   {
     name: 'avnm-hub-west'
-    location: 'westus2'
+    location: 'westus3'
     mgName: 'mg-hub-westus'
     subscriptionId: ''
     resourceGroup: 'rg-avnm-west'

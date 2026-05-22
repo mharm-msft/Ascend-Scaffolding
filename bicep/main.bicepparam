@@ -33,7 +33,7 @@ param hubs = [
   }
   {
     name: 'avnm-hub-west'
-    location: 'westus2'
+    location: 'westus3'
     mgName: 'mg-hub-westus'
     subscriptionId: '00000000-0000-0000-0000-000000000000'
     resourceGroup: 'rg-avnm-west'
