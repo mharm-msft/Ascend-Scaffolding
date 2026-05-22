@@ -20,6 +20,13 @@ subscription**; nothing here touches the platform (hub) subscriptions.
 - No VPN/ExpressRoute gateways. Those live on the hub.
 - No SecurityAdmin rules. Those are owned by the parent / child AVNM
   (ADR [0006](../docs/adr/0006-baseline-security-admin-rules-at-parent.md)).
+- No assumptions about workload type. Spokes may host LOB apps, data
+  platforms, **AI inference clusters / Azure OpenAI private endpoints
+  / RAG pipelines**, or per-customer SaaS instances — the spoke module
+  is intentionally minimal so workload teams layer arbitrary services
+  on top. See
+  [`docs/scope-scaffolding-vs-final-product.md`](../docs/scope-scaffolding-vs-final-product.md)
+  for the scaffolding-vs-final-product boundary.
 
 ## Membership flow (so you know what to expect after deploy)
 

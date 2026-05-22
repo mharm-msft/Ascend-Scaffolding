@@ -4,6 +4,17 @@ Infrastructure-as-Code scaffolding for an Azure Virtual Network Manager (AVNM)
 hub-and-spoke SaaS POC, grounded in Azure Policy. Designed to scale from a
 500-spoke POC to 10,000+ spokes across multiple regions and DR pairs.
 
+## Scope
+
+This repo is **scaffolding**, not a finished SaaS. It provides a stable
+governance + connectivity foundation; customer-specific choices
+(firewall vendor, load balancer, VPN/ExpressRoute, shared services,
+telemetry stack, APIM/AFD edge, spoke workloads including AI clusters,
+single- vs. multi-tenant) are layered on top at well-defined seams. See
+[`docs/scope-scaffolding-vs-final-product.md`](docs/scope-scaffolding-vs-final-product.md)
+for the line between what scaffolding owns and what each customer build
+contributes.
+
 ## Architecture summary
 
 - **Parent AVNM** at the root management group (`mg-saas-platform`) for
